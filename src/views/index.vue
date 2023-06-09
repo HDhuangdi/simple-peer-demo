@@ -148,7 +148,7 @@ export default {
             username: "demo",
           },
         ],
-        server: "wss://www.hzwaterit.com",
+        server: "wss://zhglmobile.hzwgc.com",
         // server: "wss://www.hzwateritzx.com:9876",
         // server: "ws://192.168.71.125:8088",
         onStream: this.onStream.bind(this),
@@ -328,7 +328,6 @@ export default {
       color: #ffffff;
     }
     .connectButton {
-      width: 137px;
       height: 42px;
       border: 0;
       outline: none;
@@ -339,6 +338,8 @@ export default {
       background-size: 100% 100%;
       z-index: 3;
       font-size: 17px;
+      box-sizing: content-box;
+      padding: 0 20px;
     }
   }
 
