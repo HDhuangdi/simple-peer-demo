@@ -117,9 +117,9 @@ export default {
     console.log(query);
     let roomId;
     let token = "";
-    if (query.roomId && ~query.roomId.indexOf("|||token=")) {
-      roomId = query.roomId.split("|||token=")[0];
-      token = query.roomId.split("|||token=")[1];
+    if (query.roomId && ~query.roomId.indexOf("hskjyjzhtoken=")) {
+      roomId = query.roomId.split("hskjyjzhtoken=")[0];
+      token = query.roomId.split("hskjyjzhtoken=")[1];
     } else {
       roomId = query.roomId;
     }
