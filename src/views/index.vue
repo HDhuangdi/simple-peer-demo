@@ -96,6 +96,7 @@
         </div>
       </div>
     </template>
+    <div v-if="token" class="home" @click="goHome()">首页</div>
   </div>
 </template>
 
@@ -112,9 +113,20 @@ export default {
     wave,
   },
   data() {
-    const roomId = this.$route.query.roomId;
+    const query = this.$route.query;
+    console.log(query);
+    let roomId;
+    let token = "";
+    if (query.roomId && ~query.roomId.indexOf("|||token=")) {
+      roomId = query.roomId.split("|||token=")[0];
+      token = query.roomId.split("|||token=")[1];
+    } else {
+      roomId = query.roomId;
+    }
+
     return {
       roomId,
+      token,
       hasCameraStream: true,
       hasAudioStream: true,
       connected: false,
@@ -139,6 +151,9 @@ export default {
     // const vConsole = new VConsole();
   },
   methods: {
+    goHome() {
+      location.href = `https://zhglmobile.hzwgc.com:4431/#/bars/messages/index?token=${this.token}`;
+    },
     createPeer() {
       peer = new MultiplePeer({
         iceServers: [
@@ -196,10 +211,10 @@ export default {
           stream = await navigator.mediaDevices.getUserMedia(obj);
           console.warn("检测到只有麦克风的情况");
           this.cameraDisabled = true;
-          this.hasCameraStream = false
+          this.hasCameraStream = false;
         } catch (e) {
           // 说明没有麦克风流，需要继续查找是否有摄像头流
-          this.hasAudioStream = false
+          this.hasAudioStream = false;
           this.micDisabled = true;
           stream = await this.getOnlyCameraStream();
         }
@@ -234,8 +249,8 @@ export default {
         console.warn("无视频流");
         this.cameraDisabled = true;
         this.micDisabled = true;
-        this.hasCameraStream = false
-        this.hasAudioStream = false
+        this.hasCameraStream = false;
+        this.hasAudioStream = false;
       }
 
       peer.connect(
@@ -431,6 +446,19 @@ export default {
         left: 5px;
       }
     }
+  }
+  .home {
+    height: 50px;
+    width: 50px;
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    border-radius: 50%;
+    background-color: #0d778d;
+    color: #fff;
+    line-height: 50px;
+    text-align: center;
+    cursor: pointer;
   }
 }
 </style>
