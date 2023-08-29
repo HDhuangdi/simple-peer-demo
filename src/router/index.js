@@ -1,6 +1,7 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-import index from "../views/index";
+import home from "../views/home";
+import meeting from "../views/meeting";
 
 Vue.use(VueRouter);
 
@@ -8,7 +9,12 @@ const routes = [
   {
     path: "/",
     name: "",
-    component: index,
+    component: home,
+  },
+  {
+    path: "/meeting",
+    name: "",
+    component: meeting,
   },
 ];
 
