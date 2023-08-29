@@ -17,7 +17,10 @@
     <template v-else>
       <wave text="等待其他人加入中..." v-if="!objectLenth(allMembers)"></wave>
       <div class="main" v-else>
-        <div class="local-video-container">
+        <div
+          class="local-video-container"
+          v-show="hasCameraStream"
+        >
           <video
             preload="auto"
             autoplay="autoplay"
