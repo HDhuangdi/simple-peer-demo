@@ -17,10 +17,7 @@
     <template v-else>
       <wave text="等待其他人加入中..." v-if="!objectLenth(allMembers)"></wave>
       <div class="main" v-else>
-        <div
-          class="local-video-container"
-          v-show="hasCameraStream"
-        >
+        <div class="local-video-container" v-show="hasCameraStream">
           <video
             preload="auto"
             autoplay="autoplay"
@@ -99,7 +96,7 @@
         </div>
       </div>
     </template>
-    <div v-if="token" class="home" @click="goHome()">首页</div>
+    <div class="home" @click="goHome()">首页</div>
   </div>
 </template>
 
@@ -116,20 +113,8 @@ export default {
     wave,
   },
   data() {
-    const query = this.$route.query;
-    console.log(query);
-    let roomId;
-    let token = "";
-    if (query.roomId && ~query.roomId.indexOf("hskjyjzhtoken=")) {
-      roomId = query.roomId.split("hskjyjzhtoken=")[0];
-      token = query.roomId.split("hskjyjzhtoken=")[1];
-    } else {
-      roomId = query.roomId;
-    }
-
     return {
-      roomId,
-      token,
+      roomId: this.$route.query.roomId,
       hasCameraStream: true,
       hasAudioStream: true,
       connected: false,
@@ -152,10 +137,13 @@ export default {
   },
   mounted() {
     // const vConsole = new VConsole();
+    if (this.roomId) {
+      this.connect();
+    }
   },
   methods: {
     goHome() {
-      location.href = `https://zhglmobile.hzwgc.com:4431/#/bars/messages/index?token=${this.token}`;
+      this.$router.push("/");
     },
     createPeer() {
       peer = new MultiplePeer({
@@ -297,6 +285,7 @@ export default {
       if (peer) peer.hangup();
       peer = null;
       this.connected = false;
+      this.goHome();
     },
   },
   computed: {
@@ -462,6 +451,7 @@ export default {
     line-height: 50px;
     text-align: center;
     cursor: pointer;
+    z-index: 999;
   }
 }
 </style>
