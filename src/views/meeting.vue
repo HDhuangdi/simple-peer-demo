@@ -17,7 +17,7 @@
     <template v-else>
       <wave text="等待其他人加入中..." v-if="!objectLenth(allMembers)"></wave>
       <div class="main" v-else>
-        <div class="local-video-container" v-show="hasCameraStream">
+        <div class="focus-member member">
           <video
             preload="auto"
             autoplay="autoplay"
@@ -27,17 +27,64 @@
             x5-video-player-type="h5"
             x5-video-player-fullscreen="true"
             x5-video-orientation="portraint"
-            ref="local"
-            id="local"
+            ref="focus"
+            id="focus"
             src=""
             muted
           ></video>
+          <img
+            src="../assets/video-close.png"
+            class="no-camera-bg"
+            v-show="!hasCameraStream"
+          />
+          <img
+            src="../assets/mic.png"
+            class="audio-icon"
+            v-show="hasAudioStream"
+          />
+          <img
+            src="../assets/mic-close.png"
+            class="audio-icon"
+            v-show="!hasAudioStream"
+          />
         </div>
-        <div class="remotes">
+        <div class="member-list">
+          <div class="member">
+            <video
+              preload="auto"
+              autoplay="autoplay"
+              x-webkit-airplay="true"
+              playsinline="true"
+              webkit-playsinline="true"
+              x5-video-player-type="h5"
+              x5-video-player-fullscreen="true"
+              x5-video-orientation="portraint"
+              ref="local"
+              id="local"
+              src=""
+              muted
+            ></video>
+            <img
+              src="../assets/video-close.png"
+              class="no-camera-bg"
+              v-show="!hasCameraStream"
+            />
+            <img
+              src="../assets/mic.png"
+              class="audio-icon"
+              v-show="hasAudioStream"
+            />
+            <img
+              src="../assets/mic-close.png"
+              class="audio-icon"
+              v-show="!hasAudioStream"
+            />
+          </div>
           <div
-            class="remote-video-container"
+            class="member"
             v-for="member of memberList"
             :key="member.id"
+            @click="focus(member)"
           >
             <video
               v-if="remoteVideoVisible"
@@ -123,6 +170,7 @@ export default {
       cameraDisabled: false,
       micDisabled: false,
       remoteVideoVisible: true,
+      focusMember: {},
     };
   },
   watch: {
@@ -287,6 +335,10 @@ export default {
       this.connected = false;
       this.goHome();
     },
+    focus(member) {
+      this.$refs.focus.srcObject =
+        this.$refs[`remote${member.id}`][0].srcObject;
+    },
   },
   computed: {
     memberList() {
@@ -312,6 +364,8 @@ export default {
   .main {
     height: 100%;
     width: 100%;
+    display: flex;
+    justify-content: space-between;
   }
   .start {
     width: 100%;
@@ -404,47 +458,52 @@ export default {
       top: 24px;
     }
   }
-  .remotes {
-    width: 100%;
+  .focus-member {
+    width: calc(100% - 200px);
+    height: calc(100% - 80px) !important;
+    cursor: default !important;
+    .audio-icon {
+      width: 30px !important;
+    }
+  }
+  .member-list {
     height: calc(100% - 80px);
+    width: 200px;
     overflow-y: auto;
-    display: flex;
-    align-items: center;
-    padding: 30px 0;
-    justify-content: center;
-    flex-wrap: wrap;
-    .remote-video-container {
-      width: 33%;
-      height: 160px;
-      background: #153843;
-      border: 1px solid #1a707e;
-      padding: 12px;
-      position: relative;
-      video {
-        width: 100%;
-        height: 100%;
-      }
-      .no-camera-bg {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 15%;
-      }
-      .audio-icon {
-        position: absolute;
-        bottom: 5px;
-        width: 15px;
-        left: 5px;
-      }
+    background-color: #092d38;
+  }
+  .member {
+    width: 100%;
+    height: 160px;
+    background: #153843;
+    border: 1px solid #1a707e;
+    padding: 12px;
+    position: relative;
+    cursor: pointer;
+    video {
+      width: 100%;
+      height: 100%;
+    }
+    .no-camera-bg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 15%;
+    }
+    .audio-icon {
+      position: absolute;
+      bottom: 5px;
+      width: 15px;
+      left: 5px;
     }
   }
   .home {
     height: 50px;
     width: 50px;
     position: absolute;
-    bottom: 30px;
-    right: 30px;
+    bottom: 155px;
+    left: 27px;
     border-radius: 50%;
     background-color: #0d778d;
     color: #fff;
