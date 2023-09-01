@@ -31,25 +31,26 @@
             id="focus"
             src=""
             muted
+            v-show="!focusMember.cameraDisabled"
           ></video>
           <img
             src="../assets/video-close.png"
             class="no-camera-bg"
-            v-show="!hasCameraStream"
+            v-show="focusMember.cameraDisabled"
           />
           <img
             src="../assets/mic.png"
             class="audio-icon"
-            v-show="hasAudioStream"
+            v-show="!focusMember.micDisabled"
           />
           <img
             src="../assets/mic-close.png"
             class="audio-icon"
-            v-show="!hasAudioStream"
+            v-show="focusMember.micDisabled"
           />
         </div>
         <div class="member-list">
-          <div class="member">
+          <div class="member" @click="focus()">
             <video
               preload="auto"
               autoplay="autoplay"
@@ -63,21 +64,22 @@
               id="local"
               src=""
               muted
+              v-show="!cameraDisabled"
             ></video>
             <img
               src="../assets/video-close.png"
               class="no-camera-bg"
-              v-show="!hasCameraStream"
+              v-show="cameraDisabled"
             />
             <img
               src="../assets/mic.png"
               class="audio-icon"
-              v-show="hasAudioStream"
+              v-show="!micDisabled"
             />
             <img
               src="../assets/mic-close.png"
               class="audio-icon"
-              v-show="!hasAudioStream"
+              v-show="micDisabled"
             />
           </div>
           <div
@@ -166,14 +168,32 @@ export default {
       hasAudioStream: true,
       connected: false,
       pending: true,
-      allMembers: [],
+      allMembers: {},
       cameraDisabled: false,
       micDisabled: false,
       remoteVideoVisible: true,
-      focusMember: {},
+      focusMember: {
+        id: "local",
+        cameraDisabled: false,
+        micDisabled: false,
+      },
     };
   },
   watch: {
+    allMembers: {
+      deep: true,
+      handler(v) {
+        for (const id in v) {
+          if (Object.hasOwnProperty.call(v, id)) {
+            const member = v[id];
+            if (this.focusMember.id === id) {
+              this.focusMember.cameraDisabled = !member.hasCameraStream;
+              this.focusMember.micDisabled = !member.hasAudioStream;
+            }
+          }
+        }
+      },
+    },
     async cameraDisabled(v) {
       if (!peer) return;
       peer.switchStream(!v, !this.micDisabled);
@@ -243,7 +263,6 @@ export default {
     async getOnlyMicStream(shouldGetCameraStream) {
       let stream;
       const obj = { audio: true };
-      console.log(shouldGetCameraStream);
       if (shouldGetCameraStream) {
         // 需要继续查找是否有摄像头流
         try {
@@ -301,33 +320,45 @@ export default {
       this.connected = true;
     },
     async onStream(member, remoteStream, localStream, allMembers) {
+      console.log("onStream");
       this.allMembers = { ...allMembers };
       await this.$nextTick();
       if (!this.$refs.local.srcObject) {
         this.$refs.local.srcObject = localStream;
+        this.$refs.focus.srcObject = localStream;
       }
       this.$refs[`remote${member.id}`][0].srcObject = remoteStream;
     },
     async onNoStreamJoin(member, allMembers) {
+      console.log("onNoStreamJoin");
       this.allMembers = { ...allMembers };
       await this.$nextTick();
       if (!this.$refs.local.srcObject) {
         this.$refs.local.srcObject = localStream;
+        this.$refs.focus.srcObject = localStream;
       }
     },
     onRemove(member, allMembers) {
+      console.log("onRemove");
       this.allMembers = { ...allMembers };
     },
     onDisconnected(allMembers) {
+      console.log("onDisconnected");
       this.allMembers = { ...allMembers };
     },
     switchCamera() {
       if (!this.hasCameraStream) return;
       this.cameraDisabled = !this.cameraDisabled;
+      if (this.focusMember.id === "local") {
+        this.focusMember.cameraDisabled = this.cameraDisabled;
+      }
     },
     switchMic() {
       if (!this.hasAudioStream) return;
       this.micDisabled = !this.micDisabled;
+      if (this.focusMember.id === "local") {
+        this.focusMember.micDisabled = this.micDisabled;
+      }
     },
     hangup() {
       if (peer) peer.hangup();
@@ -336,8 +367,19 @@ export default {
       this.goHome();
     },
     focus(member) {
-      this.$refs.focus.srcObject =
-        this.$refs[`remote${member.id}`][0].srcObject;
+      this.$refs.focus.muted = true;
+      if (member) {
+        this.$refs.focus.srcObject =
+          this.$refs[`remote${member.id}`][0].srcObject;
+        this.focusMember.cameraDisabled = !member.hasCameraStream;
+        this.focusMember.micDisabled = !member.hasAudioStream;
+        this.focusMember.id = member.id;
+      } else {
+        this.$refs.focus.srcObject = this.$refs.local.srcObject;
+        this.focusMember.cameraDisabled = this.cameraDisabled;
+        this.focusMember.micDisabled = this.micDisabled;
+        this.focusMember.id = "local";
+      }
     },
   },
   computed: {
