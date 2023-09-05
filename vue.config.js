@@ -6,5 +6,16 @@ module.exports = defineConfig({
   publicPath: '/meeting/',
   configureWebpack: {
     plugins: [new NodePolyfillPlugin()]
+  },
+  devServer: {
+    proxy: {
+      '/api': {
+        target: 'https://jsczh.hzcjtz.com:8006/',
+        changeOrigin: true,
+        pathRewrite: {
+          '/api': ''
+        }
+      },
+    }
   }
 })

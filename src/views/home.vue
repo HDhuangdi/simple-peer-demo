@@ -15,38 +15,68 @@
               <el-tab-pane label="组织架构" name="组织架构">
                 <div class="tree-container">
                   <el-tree
-                    @check="handleCheckChange"
+                    @check="handleOrgCheckChange"
                     :data="orgTreeData"
                     show-checkbox
-                    node-key="label"
+                    node-key="index"
                     :props="{
                       children: 'children',
                       label: 'label',
                     }"
-                    :render-content="renderContent"
                   >
+                    <div
+                      class="tree-node"
+                      :class="node.data.isRoot ? 'large' : ''"
+                      slot-scope="{ node, data }"
+                    >
+                      <span>
+                        {{ node.label }}
+                      </span>
+                      <span v-if="node.data.tel">{{ node.data.tel }}</span>
+                    </div>
                   </el-tree>
                 </div>
               </el-tab-pane>
               <el-tab-pane label="应急小组" name="应急小组">
-                <div
-                  class="emergency-team"
-                  v-for="item of emergencyTeam"
-                  :key="item.name"
-                >
-                  <div class="team-info">
-                    <div class="team-name">{{ item.name }}</div>
-                    <div class="team-button" @click="confirm(item.name)">
-                      一键拉会
+                <div class="tree-container">
+                  <div class="cols">
+                    <span>单位（部门）</span>
+                    <span>姓名</span>
+                    <span>职务</span>
+                  </div>
+                  <el-tree
+                    :data="emergencyTeam"
+                    node-key="index"
+                    show-checkbox
+                    @check="handleTeamCheckChange"
+                    :props="{
+                      children: 'children',
+                      label: 'label',
+                    }"
+                  >
+                    <div
+                      class="tree-node"
+                      :class="node.data.isRoot ? 'large' : ''"
+                      slot-scope="{ node, data }"
+                    >
+                      <span>
+                        {{ node.label }}
+                      </span>
+                      <span
+                        v-if="node.data.isRoot"
+                        class="team-button"
+                        @click="onKey(node.data)"
+                      >
+                        一键拉会
+                      </span>
+                      <span v-if="node.data.name">
+                        {{ node.data.name }}
+                      </span>
+                      <span v-if="node.data.title">
+                        {{ node.data.title }}
+                      </span>
                     </div>
-                  </div>
-
-                  <div class="team-leader">
-                    <div>组长：</div>
-                    <div class="leader-name">{{ item.leader }}</div>
-                    <div style="margin-left: 10px">电话：</div>
-                    <div class="leader-tel">{{ item.tel }}</div>
-                  </div>
+                  </el-tree>
                 </div>
               </el-tab-pane>
             </el-tabs>
@@ -55,7 +85,6 @@
             style="margin-left: 10px"
             class="next-button"
             @click="confirm"
-            v-if="activeTab === '组织架构'"
           >
             下一步
           </button>
@@ -75,142 +104,19 @@
 </template>
 
 <script>
+import { sendTextMessageBatchAPI } from "./api";
+import { orgTreeData, emergencyTeam } from "./tree-data";
+
 export default {
   data() {
     return {
       roomId: "",
-      orgTreeData: [
-        {
-          label: "应急管理部",
-          children: [
-            {
-              label: "陈浩",
-              tel: "13588886738",
-            },
-            {
-              label: "周骅",
-              tel: "13989868674",
-            },
-            {
-              label: "钱玮亮",
-              tel: "13305711242",
-            },
-            {
-              label: "韩冬",
-              tel: "13588802506",
-            },
-            {
-              label: "潘海散",
-              tel: "13857125131",
-            },
-            {
-              label: "王婷",
-              tel: "18258186094",
-            },
-            {
-              label: "张忠平",
-              tel: "15858160510",
-            },
-            {
-              label: "叶家浩",
-              tel: "13029453301",
-            },
-            {
-              label: "孙诚涛",
-              tel: "17367073341",
-            },
-            {
-              label: "席寒",
-              tel: "19521556866",
-            },
-            {
-              label: "施鹏飞",
-              tel: "15968150327",
-            },
-            {
-              label: "王智星",
-              tel: "15168375622",
-            },
-            {
-              label: "缪承谕",
-              tel: "15957668088",
-            },
-            {
-              label: "王津",
-              tel: "15258886927",
-            },
-            {
-              label: "祝沈军",
-              tel: "18767169819",
-            },
-            {
-              label: "崔向虎",
-              tel: "18868890111",
-            },
-          ],
-        },
-        {
-          label: "科技信息部",
-          children: [
-            {
-              label: "刘洪江",
-              tel: "13705816537",
-            },
-            {
-              label: "张国剑",
-              tel: "13905718977",
-            },
-            {
-              label: "封敏奇",
-              tel: "13588479572",
-            },
-            {
-              label: "叶奕庆",
-              tel: "18758028425",
-            },
-            {
-              label: "纪睿",
-              tel: "17767100456",
-            },
-            {
-              label: "金晓燕",
-              tel: "18358558955",
-            },
-            {
-              label: "谭婧",
-              tel: "13031166700",
-            },
-            {
-              label: "缪承谕",
-              tel: "15957668088",
-            },
-            {
-              label: "王梦妍",
-              tel: "13136199275",
-            },
-          ],
-        },
-      ],
-      emergencyTeam: [
-        {
-          name: "小组一",
-          leader: "xxxxx",
-          tel: "123asdadasd",
-        },
-        {
-          name: "小组二",
-          leader: "xxxxx",
-          tel: "123asdadasd",
-        },
-        {
-          name: "小组三",
-          leader: "xxxxx",
-          tel: "123asdadasd",
-        },
-      ],
+      orgTreeData,
+      emergencyTeam,
       activeTab: "组织架构",
       step: "1",
-      checkedNodes: [],
+      orgCheckedNodes: [],
+      teamCheckedNodes: [],
     };
   },
   methods: {
@@ -226,35 +132,62 @@ export default {
     },
     confirm(teamName) {
       if (this.activeTab === "组织架构") {
-        if (!this.checkedNodes.length) {
+        if (!this.orgCheckedNodes.length) {
           this.$message({
             message: "请选择参会人员",
             type: "warning",
           });
         } else {
           this.roomId = this.randomRange(100000, 999999);
+          sendTextMessageBatchAPI({
+            identifier: "HZCT20230809102329",
+            content: `【杭州城投】请加入会议 https://hzwateritzx.com/meeting/#/meeting?roomId=${this.roomId}`,
+            phoneList: this.orgCheckedNodes
+              .filter((node) => !node.children)
+              .map((item) => item.tel),
+          });
           this.$router.push("/meeting?roomId=" + this.roomId);
-          // this.step = "2";
         }
       } else {
-        this.roomId = this.randomRange(100000, 999999);
-        this.$router.push("/meeting?roomId=" + this.roomId);
-        // this.step = "2";
+        if (!this.teamCheckedNodes.length) {
+          this.$message({
+            message: "请选择参会人员",
+            type: "warning",
+          });
+        } else {
+          this.roomId = this.randomRange(100000, 999999);
+          sendTextMessageBatchAPI({
+            identifier: "HZCT20230809102329",
+            content: `【杭州城投】请加入会议 https://hzwateritzx.com/meeting/#/meeting?roomId=${this.roomId}`,
+            phoneList: this.teamCheckedNodes
+              .filter((node) => !node.children)
+              .map((item) => item.tel),
+          });
+          this.$router.push("/meeting?roomId=" + this.roomId);
+        }
       }
     },
-    renderContent(h, { node, data, store }) {
-      return (
-        <div style="display: flex;justify-content: space-between;width: 70%; color:#00d9ff;">
-          <span>{node.label}</span>
-          <span>{node.data.tel}</span>
-        </div>
-      );
+    onKey(nodeData) {
+      const phoneList = nodeData.children.map((e) => e.tel);
+      this.roomId = this.randomRange(100000, 999999);
+      sendTextMessageBatchAPI({
+        identifier: "HZCT20230809102329",
+        content: `【杭州城投】请加入会议 https://hzwateritzx.com/meeting/#/meeting?roomId=${this.roomId}`,
+        phoneList,
+      });
+      this.$router.push("/meeting?roomId=" + this.roomId);
     },
-    handleCheckChange(e1, e2) {
-      this.checkedNodes = e2.checkedNodes;
+    handleOrgCheckChange(e1, e2) {
+      this.orgCheckedNodes = e2.checkedNodes;
+    },
+    handleTeamCheckChange(e1, e2) {
+      this.teamCheckedNodes = e2.checkedNodes;
     },
     randomRange(min, max) {
       return Math.floor(Math.random() * (max - min)) + min;
+    },
+    a(v) {
+      console.log(v);
     },
   },
 };
@@ -301,7 +234,7 @@ export default {
       padding: 0 20px;
     }
     .next-button {
-      width: 300px;
+      width: 800px;
       background-color: #298b9e;
       color: #fff;
       height: 40px;
@@ -313,13 +246,14 @@ export default {
       margin-top: 20px;
     }
     .tabs-container {
-      height: 350px;
-      width: 300px;
+      height: 500px;
+      width: 800px;
       border: 1px solid rgb(19, 137, 158);
       .tree-container {
         border-radius: 4px;
-        height: 300px;
+        height: 450px;
         overflow-y: auto;
+        padding: 10px;
         &::-webkit-scrollbar {
           width: 6px;
         }
@@ -331,6 +265,26 @@ export default {
         &::-webkit-scrollbar-thumb {
           border-radius: 10px;
           background-color: rgb(19, 137, 158);
+        }
+        .cols {
+          padding: 5px 0 5px 64px;
+          color: #00d5ff;
+          font-size: 18px;
+          span {
+            display: inline-block;
+          }
+          span:nth-child(1) {
+            width: 300px;
+          }
+          span:nth-child(2) {
+            width: 70px;
+          }
+          span:nth-child(3) {
+            width: 270px;
+          }
+          span:nth-child(4) {
+            width: 100px;
+          }
         }
       }
     }
@@ -351,6 +305,7 @@ export default {
             text-align: center;
             &.is-active {
               border-bottom-color: rgb(0, 217, 255);
+              border-bottom-width: 4px;
               color: #fff;
             }
           }
@@ -373,30 +328,46 @@ export default {
           border: 1px solid rgb(19, 137, 158);
         }
       }
-    }
-    .emergency-team {
-      color: rgb(0, 217, 255);
-      padding: 10px;
-      .team-info {
-        display: flex;
-        justify-content: space-between;
-        .team-button {
+      .tree-node {
+        width: 70%;
+        color: #00d9ff;
+        &.large {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+        }
+        &:not(.large) {
+          font-size: 14px;
+        }
+        span {
+          display: inline-block;
+        }
+        span:nth-child(1) {
+          width: 300px;
+        }
+        span:nth-child(2) {
           width: 70px;
-          background-color: #298b9e;
-          color: #fff;
-          height: 30px;
-          border-radius: 2px;
-          outline: none;
-          border: 1px solid #00d5ff;
-          cursor: pointer;
-          text-align: center;
-          font-size: 12px;
-          line-height: 30px;
+        }
+        span:nth-child(3) {
+          width: 270px;
+        }
+        span:nth-child(4) {
+          width: 100px;
         }
       }
-      .team-leader {
-        font-size: 13px;
-        display: flex;
+      .team-button {
+        width: 70px !important;
+        background-color: #298b9e;
+        color: #fff;
+        height: 25px;
+        border-radius: 2px;
+        outline: none;
+        border: 1px solid #00d5ff;
+        cursor: pointer;
+        text-align: center;
+        font-size: 12px;
+        line-height: 25px;
       }
     }
   }
