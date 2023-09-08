@@ -104,8 +104,10 @@
 </template>
 
 <script>
-import { sendTextMessageBatchAPI } from "./api";
+import { sendTextMessageBatchAPI, getTextMessageContentAPI } from "./api";
 import { orgTreeData, emergencyTeam } from "./tree-data";
+
+const isDev = process.env.NODE_ENV === 'development'
 
 export default {
   data() {
@@ -119,6 +121,43 @@ export default {
       teamCheckedNodes: [],
     };
   },
+  mounted() {
+    if (isDev) {
+      this.orgTreeData.unshift({
+        label: "测试部",
+        isRoot: true,
+        children: [
+          {
+            label: "黄迪",
+            tel: "18892622405",
+          },
+          {
+            label: "华杰",
+            tel: "17639723455",
+            label: "测试测试",
+          },
+        ],
+      });
+      this.emergencyTeam.unshift({
+        label: "测试公司",
+        isRoot: true,
+        children: [
+          {
+            name: "黄迪",
+            title: "责任人",
+            tel: "18892622405",
+            label: "测试测试",
+          },
+          {
+            name: "华杰",
+            title: "责任人",
+            tel: "17639723455",
+            label: "测试测试",
+          },
+        ],
+      });
+    }
+  },
   methods: {
     connect() {
       if (!this.roomId) {
@@ -130,7 +169,8 @@ export default {
         this.$router.push("/meeting?roomId=" + this.roomId);
       }
     },
-    confirm(teamName) {
+    async confirm() {
+      const res = await getTextMessageContentAPI();
       if (this.activeTab === "组织架构") {
         if (!this.orgCheckedNodes.length) {
           this.$message({
@@ -141,7 +181,12 @@ export default {
           this.roomId = this.randomRange(100000, 999999);
           sendTextMessageBatchAPI({
             identifier: "HZCT20230809102329",
-            content: `【杭州城投】请加入会议 https://hzwateritzx.com/meeting/#/meeting?roomId=${this.roomId}`,
+            content: this.getTextMessage(
+              this.roomId,
+              res.data.time,
+              res.data.addr,
+              res.data.content
+            ),
             phoneList: this.orgCheckedNodes
               .filter((node) => !node.children)
               .map((item) => item.tel),
@@ -158,7 +203,12 @@ export default {
           this.roomId = this.randomRange(100000, 999999);
           sendTextMessageBatchAPI({
             identifier: "HZCT20230809102329",
-            content: `【杭州城投】请加入会议 https://hzwateritzx.com/meeting/#/meeting?roomId=${this.roomId}`,
+            content: this.getTextMessage(
+              this.roomId,
+              res.data.time,
+              res.data.addr,
+              res.data.content
+            ),
             phoneList: this.teamCheckedNodes
               .filter((node) => !node.children)
               .map((item) => item.tel),
@@ -167,12 +217,21 @@ export default {
         }
       }
     },
-    onKey(nodeData) {
+    getTextMessage(roomId, time, addr, content) {
+      return `【杭州城投】杭州城投应急指挥系统提醒您，事件信息：${time}${addr}${content}，现邀请您加入应急视频会议，请点击下方链接及时查看：https://meeting.hzcjtz.com:8080/meeting/#/meeting?roomId=${roomId}，同时留意相关信息，谢谢！`;
+    },
+    async onKey(nodeData) {
+      const res = await getTextMessageContentAPI();
       const phoneList = nodeData.children.map((e) => e.tel);
       this.roomId = this.randomRange(100000, 999999);
       sendTextMessageBatchAPI({
         identifier: "HZCT20230809102329",
-        content: `【杭州城投】请加入会议 https://hzwateritzx.com/meeting/#/meeting?roomId=${this.roomId}`,
+        content: this.getTextMessage(
+          this.roomId,
+          res.data.time,
+          res.data.addr,
+          res.data.content
+        ),
         phoneList,
       });
       this.$router.push("/meeting?roomId=" + this.roomId);
@@ -234,7 +293,7 @@ export default {
       padding: 0 20px;
     }
     .next-button {
-      width: 800px;
+      width: 600px;
       background-color: #298b9e;
       color: #fff;
       height: 40px;
@@ -247,7 +306,7 @@ export default {
     }
     .tabs-container {
       height: 500px;
-      width: 800px;
+      width: 600px;
       border: 1px solid rgb(19, 137, 158);
       .tree-container {
         border-radius: 4px;
@@ -280,7 +339,6 @@ export default {
             width: 70px;
           }
           span:nth-child(3) {
-            width: 270px;
           }
           span:nth-child(4) {
             width: 100px;
@@ -350,7 +408,6 @@ export default {
           width: 70px;
         }
         span:nth-child(3) {
-          width: 270px;
         }
         span:nth-child(4) {
           width: 100px;

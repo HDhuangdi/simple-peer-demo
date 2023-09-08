@@ -211,6 +211,9 @@ export default {
   },
   methods: {
     goHome() {
+      if (peer) peer.hangup();
+      peer = null;
+      this.connected = false;
       this.$router.push("/");
     },
     createPeer() {
@@ -222,9 +225,8 @@ export default {
             username: "demo",
           },
         ],
-        // server: "wss://zhglmobile.hzwgc.com",
-        server: "wss://www.hzwateritzx.com:9876",
-        // server: "ws://192.168.71.125:8088",
+        // server: "wss://www.hzwateritzx.com:9876",
+        server: "wss://meeting.hzcjtz.com:9876",
         onStream: this.onStream.bind(this),
         onNoStreamJoin: this.onNoStreamJoin.bind(this),
         onRemove: this.onRemove.bind(this),

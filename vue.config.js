@@ -1,21 +1,25 @@
-const { defineConfig } = require('@vue/cli-service')
-const NodePolyfillPlugin = require('node-polyfill-webpack-plugin')
+const { defineConfig } = require("@vue/cli-service");
+const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
 
 module.exports = defineConfig({
   transpileDependencies: true,
-  publicPath: '/meeting/',
+  publicPath: "/meeting/",
   configureWebpack: {
-    plugins: [new NodePolyfillPlugin()]
+    plugins: [new NodePolyfillPlugin()],
   },
   devServer: {
     proxy: {
-      '/api': {
-        target: 'https://jsczh.hzcjtz.com:8006/',
+      "/ctapi": {
+        target: "https://jsczh.hzcjtz.com:8006/",
         changeOrigin: true,
         pathRewrite: {
-          '/api': ''
-        }
+          "/ctapi": "",
+        },
       },
-    }
-  }
-})
+      "^/api": {
+        target: "https://meeting.hzcjtz.com:8080",
+        changeOrigin: true,
+      },
+    },
+  },
+});
