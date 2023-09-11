@@ -12,7 +12,7 @@
         >
           <div class="tabs-container">
             <el-tabs v-model="activeTab" type="card">
-              <el-tab-pane label="组织架构" name="组织架构">
+              <!-- <el-tab-pane label="组织架构" name="组织架构">
                 <div class="tree-container">
                   <el-tree
                     @check="handleOrgCheckChange"
@@ -36,8 +36,8 @@
                     </div>
                   </el-tree>
                 </div>
-              </el-tab-pane>
-              <el-tab-pane label="应急小组" name="应急小组">
+              </el-tab-pane> -->
+              <el-tab-pane label="应急组织" name="应急组织">
                 <div class="tree-container">
                   <div class="cols">
                     <span>单位（部门）</span>
@@ -115,7 +115,7 @@ export default {
       roomId: "",
       orgTreeData,
       emergencyTeam,
-      activeTab: "组织架构",
+      activeTab: "应急组织",
       step: "1",
       orgCheckedNodes: [],
       teamCheckedNodes: [],
