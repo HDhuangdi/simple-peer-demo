@@ -9,13 +9,6 @@ module.exports = defineConfig({
   },
   devServer: {
     proxy: {
-      "/ctapi": {
-        target: "https://jsczh.hzcjtz.com:8006/",
-        changeOrigin: true,
-        pathRewrite: {
-          "/ctapi": "",
-        },
-      },
       "^/api": {
         target: "https://meeting.hzcjtz.com:8080",
         changeOrigin: true,

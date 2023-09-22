@@ -37,7 +37,7 @@
                   </el-tree>
                 </div>
               </el-tab-pane> -->
-              <el-tab-pane label="应急组织" name="应急组织">
+              <el-tab-pane label="应急小组" name="应急小组">
                 <div class="tree-container">
                   <div class="cols">
                     <span>单位（部门）</span>
@@ -104,10 +104,8 @@
 </template>
 
 <script>
-import { sendTextMessageBatchAPI, getTextMessageContentAPI } from "./api";
+import { sendTextMessageBatchAPI, getMessageContentAPI } from "./api";
 import { orgTreeData, emergencyTeam } from "./tree-data";
-
-const isDev = process.env.NODE_ENV === 'development'
 
 export default {
   data() {
@@ -115,48 +113,13 @@ export default {
       roomId: "",
       orgTreeData,
       emergencyTeam,
-      activeTab: "应急组织",
+      activeTab: "应急小组",
       step: "1",
       orgCheckedNodes: [],
       teamCheckedNodes: [],
     };
   },
   mounted() {
-    if (isDev) {
-      this.orgTreeData.unshift({
-        label: "测试部",
-        isRoot: true,
-        children: [
-          {
-            label: "黄迪",
-            tel: "18892622405",
-          },
-          {
-            label: "华杰",
-            tel: "17639723455",
-            label: "测试测试",
-          },
-        ],
-      });
-      this.emergencyTeam.unshift({
-        label: "测试公司",
-        isRoot: true,
-        children: [
-          {
-            name: "黄迪",
-            title: "责任人",
-            tel: "18892622405",
-            label: "测试测试",
-          },
-          {
-            name: "华杰",
-            title: "责任人",
-            tel: "17639723455",
-            label: "测试测试",
-          },
-        ],
-      });
-    }
   },
   methods: {
     connect() {
@@ -169,8 +132,9 @@ export default {
         this.$router.push("/meeting?roomId=" + this.roomId);
       }
     },
-    async confirm() {
-      const res = await getTextMessageContentAPI();
+    async confirm(teamName) {
+      this.roomId = this.randomRange(100000, 999999);
+      const content = await this.getMessageContent(this.roomId)
       if (this.activeTab === "组织架构") {
         if (!this.orgCheckedNodes.length) {
           this.$message({
@@ -178,15 +142,9 @@ export default {
             type: "warning",
           });
         } else {
-          this.roomId = this.randomRange(100000, 999999);
           sendTextMessageBatchAPI({
             identifier: "HZCT20230809102329",
-            content: this.getTextMessage(
-              this.roomId,
-              res.data.time,
-              res.data.addr,
-              res.data.content
-            ),
+            content,
             phoneList: this.orgCheckedNodes
               .filter((node) => !node.children)
               .map((item) => item.tel),
@@ -200,15 +158,9 @@ export default {
             type: "warning",
           });
         } else {
-          this.roomId = this.randomRange(100000, 999999);
           sendTextMessageBatchAPI({
             identifier: "HZCT20230809102329",
-            content: this.getTextMessage(
-              this.roomId,
-              res.data.time,
-              res.data.addr,
-              res.data.content
-            ),
+            content,
             phoneList: this.teamCheckedNodes
               .filter((node) => !node.children)
               .map((item) => item.tel),
@@ -217,24 +169,29 @@ export default {
         }
       }
     },
-    getTextMessage(roomId, time, addr, content) {
-      return `【杭州城投】杭州城投应急指挥系统提醒您，事件信息：${time}${addr}${content}，现邀请您加入应急视频会议，请点击下方链接及时查看：https://meeting.hzcjtz.com:8080/meeting/#/meeting?roomId=${roomId}，同时留意相关信息，谢谢！`;
-    },
     async onKey(nodeData) {
-      const res = await getTextMessageContentAPI();
-      const phoneList = nodeData.children.map((e) => e.tel);
       this.roomId = this.randomRange(100000, 999999);
+      const content = await this.getMessageContent(this.roomId)
+      const phoneList = [];
+      for(let i = 0; i < nodeData.children.length; i++) {
+        if (nodeData.children[i].children) {
+          for(let j = 0; j < nodeData.children[i].children.length; j++) {
+            phoneList.push(nodeData.children[i].children[j].tel);
+          }
+        } else {
+          phoneList.push(nodeData.children[i].tel);
+        }
+      }
       sendTextMessageBatchAPI({
         identifier: "HZCT20230809102329",
-        content: this.getTextMessage(
-          this.roomId,
-          res.data.time,
-          res.data.addr,
-          res.data.content
-        ),
+        content,
         phoneList,
       });
       this.$router.push("/meeting?roomId=" + this.roomId);
+    },
+    async getMessageContent(roomId) {
+      const res = await getMessageContentAPI()
+      return `【杭州城投】杭州城投应急指挥系统提醒您，事件信息：${res.data.time}${res.data.addr}${res.data.content}，现邀请您加入应急视频会议，请点击下方链接及时查看：https://meeting.hzcjtz.com:8080/meeting/#/meeting?roomId=${roomId}，同时留意相关信息，谢谢！`
     },
     handleOrgCheckChange(e1, e2) {
       this.orgCheckedNodes = e2.checkedNodes;
@@ -293,7 +250,7 @@ export default {
       padding: 0 20px;
     }
     .next-button {
-      width: 600px;
+      width: 800px;
       background-color: #298b9e;
       color: #fff;
       height: 40px;
@@ -306,7 +263,7 @@ export default {
     }
     .tabs-container {
       height: 500px;
-      width: 600px;
+      width: 800px;
       border: 1px solid rgb(19, 137, 158);
       .tree-container {
         border-radius: 4px;
@@ -339,6 +296,7 @@ export default {
             width: 70px;
           }
           span:nth-child(3) {
+            width: 270px;
           }
           span:nth-child(4) {
             width: 100px;
@@ -408,6 +366,7 @@ export default {
           width: 70px;
         }
         span:nth-child(3) {
+          width: 270px;
         }
         span:nth-child(4) {
           width: 100px;
